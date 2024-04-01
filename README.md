@@ -1,46 +1,115 @@
-# Getting Started with Create React App
+# Redux Overview
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## What is Redux?
 
-## Available Scripts
+Redux is a pattern and library for managing and updating application state, using events called "actions".
 
-In the project directory, you can run:
+## Why Should I Use Redux?
 
-### `npm start`
+The patterns and tools provided by Redux make it easier to understand when, where, why, and how the state in your application is being updated, and how your application logic will behave when those changes occur.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## When Should I Use Redux?
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+You should consider using Redux when:
 
-### `npm test`
+- You have large amounts of application state that are needed in many places in the app.
+- The app state is updated frequently over time.
+- The logic to update that state may be complex.
+- The app has a medium or large-sized codebase, and might be worked on by many people.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Redux Terms and Concepts
 
-### `npm run build`
+### State Management
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+A Redux application is a self-contained app with the following parts:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- The state, the source of truth that drives our app.
+- The view, a declarative description of the UI based on the current state.
+- The actions, the events that occur in the app based on user input, and trigger updates in the state.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+This represents a "one-way data flow":
 
-### `npm run eject`
+- State describes the condition of the app at a specific point in time.
+- The UI is rendered based on that state.
+- When something happens (such as a user clicking a button), the state is updated based on what occurred.
+- The UI re-renders based on the new state.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+<img src="public/image.png" width="500" height="300">
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Immutability
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+"Mutable" means "changeable". If something is "immutable", it can never be changed.
 
-## Learn More
+In order to update values immutably, your code must make copies of existing objects/arrays, and then modify the copies.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Redux expects that all state updates are done immutably
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+
+
+## Terminology
+
+### Actions
+An action is a plain JavaScript object that has a type field. You can think of an action as an event that describes something that happened in the application. (domain/eventName)
+
+An action object can have other fields with additional information about what happened. By convention, we put that information in a field called payload.
+
+```typescript
+const addTodoAction = {
+  type: 'todos/todoAdded',
+  payload: 'Buy milk'
+}
+```
+
+### Action Creators
+An action creator is a function that creates and returns an action object. We typically use these so we don't have to write the action object by hand every time:
+
+```typescript
+const addTodo = text => {
+  return {
+    type: 'todos/todoAdded',
+    payload: text
+  }
+}
+```
+
+### Reducers
+A reducer is a function that receives the current state and an action object, decides how to update the state if necessary, and returns the new state: (state, action) => newState. You can think of a reducer as an event listener which handles events based on the received action (event) type.
+
+Reducers must always follow some specific rules:
+- They should only calculate the new state value based on the state and action arguments
+- They are not allowed to modify the existing state. Instead, they must make immutable updates, by copying the existing state and making changes to the copied values.
+- They must not do any asynchronous logic, calculate random values, or cause other "side effects"
+
+
+### Store
+The current Redux application state lives in an object called the store .
+
+
+### Dispatch
+The Redux store has a method called dispatch. The only way to update the state is to call store.dispatch() and pass in an action object. The store will run its reducer function and save the new state value inside, and we can call getState() to retrieve the updated value
+
+### Selectors
+Selectors are functions that know how to extract specific pieces of information from a store state value. 
+
+
+## Redux Application Data Flow
+
+For Redux specifically, we can break these steps into more detail:
+
+Initial setup:
+- A Redux store is created using a root reducer function
+- The store calls the root reducer once, and saves the return value as its initial state
+- When the UI is first rendered, UI components access the current state of the Redux store, and use that data to decide what to render. They also subscribe to any future store updates so they can know if the state has changed.
+Updates:
+- Something happens in the app, such as a user clicking a button
+- The app code dispatches an action to the Redux store, like dispatch({type: 'counter/increment'})
+- The store runs the reducer function again with the previous state and the current action, and saves the return value as the new state
+- The store notifies all parts of the UI that are subscribed that the store has been updated
+- Each UI component that needs data from the store checks to see if the parts of the state they need have changed.
+- Each component that sees its data has changed forces a re-render with the new data, so it can update what's shown on the screen
+Here's what that data flow looks like visually:
+
+<img src="public/image2.gif" width="500" height="300">
+
+
